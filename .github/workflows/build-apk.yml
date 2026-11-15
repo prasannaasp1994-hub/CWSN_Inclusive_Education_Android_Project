@@ -1,0 +1,50 @@
+name: Build CWSN Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract CWSN project ZIP
+        run: |
+          unzip -o CWSN_Inclusive_Education_GitHub_Build_Colorful_Icon.zip
+          cd CWSN_Inclusive_Education_Android_Project
+          echo "PROJECT_DIR=$PWD" >> $GITHUB_ENV
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build APK
+        run: |
+          cd "$PROJECT_DIR"
+          gradle --no-daemon :app:assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CWSN-Inclusive-Education-APK
+          path: CWSN_Inclusive_Education_Android_Project/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          
